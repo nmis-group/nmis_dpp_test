@@ -42,7 +42,15 @@ pip install .
 
 ## Usage Example
 
-Create a simple digital product passport with identity, structure, and key classes:
+We have created a simple python file to showcase the usage.
+After installation run the file:
+
+```
+cd nmis_dpp_test
+python3 usage.py
+```
+
+__usage.py__ ¬
 
 ```
 # Example usage for the nmis_dpp Digital Product Passport package
