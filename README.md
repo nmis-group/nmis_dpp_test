@@ -4,17 +4,18 @@ A modular Python package that enables manufacturing companies to create interope
 
 ---
 ## Package Layout
-nmis-dpp-test/ <br />
-├── nmis_dpp/ <br />
-│   ├── __init__.py <br />
-│   ├── model.py         # Core models for DPP layers <br />
-│   ├── part_class.py    # Universal part class set <br />
-│   ├── utils.py         # Any helper functions <br />
-├── tests/ <br />
-│   ├── test_model.py <br />
-│   ├── test_part_class.py <br />
-├── pyproject.toml  <br />
-├── README.md <br />
+__nmis_dpp_test/__ <br />
+├── __nmis_dpp/__ <br />
+│   ├── `__init__.py` <br />
+│   ├── `model.py`         # Core models for DPP layers <br />
+│   ├── `part_class.py`    # Universal part class set <br />
+│   ├── `utils.py`         # Any helper functions <br />
+├── __tests/__ <br />
+│   ├── `test_model.py` <br />
+│   ├── `test_part_class.py` <br />
+├── `pyproject.toml`  <br />
+├── `LICENSE.txt`  <br />
+├── `README.md` <br />
 
 ---
 
@@ -26,11 +27,15 @@ nmis-dpp-test/ <br />
 
 ## Installation
 ### From PyPI
-pip install nmis-dpp-test
+```
+pip install nmis_dpp_test
+```
 ### From Source
-git clone https://github.com/AnmolK-NMIS/dpp-test.git  
-cd dpp-test/test-package/nmis-dpp-test  
-pip install .  
+```
+git clone https://github.com/nmis-group/nmis_dpp_test.git
+cd nmis_dpp_test  
+pip install .
+```  
 
 
 ---
@@ -162,4 +167,5 @@ print(passport_json)
 Distributed under the MIT License. See `LICENSE.txt` for details.
 
 ---
+
 
