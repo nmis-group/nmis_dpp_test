@@ -1,58 +1,3 @@
-# Digital Product Passport
-
-A modular Python package that enables manufacturing companies to create interoperable Digital Product Passports (DPPs) by mapping their existing business data to standardized DPP data models using automated semantic matching and intuitive configuration tools.
-
----
-## Package Layout
-__nmis_dpp_test/__ <br />
-├── __nmis_dpp/__ <br />
-│   ├── `__init__.py` <br />
-│   ├── `model.py`         # Core models for DPP layers <br />
-│   ├── `part_class.py`    # Universal part class set <br />
-│   ├── `utils.py`         # Any helper functions <br />
-├── __tests/__ <br />
-│   ├── `test_model.py` <br />
-│   ├── `test_part_class.py` <br />
-├── `pyproject.toml`  <br />
-├── `LICENSE.txt`  <br />
-├── `README.md` <br />
-
----
-
-## Requirements
-- Python 3.7+
-- No external dependencies (uses Python dataclasses and standard library)
-
----
-
-## Installation
-### From PyPI
-```
-pip install nmis_dpp_test
-```
-### From Source
-```
-git clone https://github.com/nmis-group/nmis_dpp_test.git
-cd nmis_dpp_test  
-pip install .
-```  
-
-
----
-
-## Usage Example
-
-We have created a simple python file to showcase the usage.
-After installation run the file:
-
-```
-cd nmis_dpp_test
-python3 usage.py
-```
-
-__usage.py__ ¬
-
-```
 # Example usage for the nmis_dpp Digital Product Passport package
 
 from nmis_dpp.model import (
@@ -160,20 +105,4 @@ print("\n--- As Dictionary ---")
 print(passport_dict)
 print("\n--- As JSON ---")
 print(passport_json)
-
-```
----
-
-## Quick Start Steps
-1. Install with `pip` or from source.
-2. Import model layers and part classes.
-3. Create instances and assemble your passport.
-
----
-
-## License
-Distributed under the MIT License. See `LICENSE.txt` for details.
-
----
-
 
