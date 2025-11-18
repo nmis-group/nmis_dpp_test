@@ -27,11 +27,11 @@ __nmis_dpp_test/__ <br />
 
 ## Installation
 ### From PyPI
-```
+```shell
 pip install nmis_dpp_test
 ```
 ### From Source
-```
+```shell
 git clone https://github.com/nmis-group/nmis_dpp_test.git
 cd nmis_dpp_test  
 pip install .
@@ -45,14 +45,14 @@ pip install .
 We have created a simple python file to showcase the usage.
 After installation run the file:
 
-```
+```shell
 cd nmis_dpp_test
 python3 usage.py
 ```
 
 __usage.py__ ¬
 
-```
+```python
 # Example usage for the nmis_dpp Digital Product Passport package
 
 from nmis_dpp.model import (
