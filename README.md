@@ -6,16 +6,31 @@ A modular Python package that enables manufacturing companies to create interope
 ## Package Layout
 __nmis_dpp_test/__ <br />
 ├── __nmis_dpp/__ <br />
+│   ├── __ontology_data/__ <br />
+│   │   ├── __eclass_16/__ <br />
+│   │   │   ├── __dictionary_assets_en/__ <br />
+│   │   │   │   ├── `ECLASS16_0_ASSET_EN_SG_13.xml` <br />
+│   │   │   │   ├── ...
+│   │   │   │   └── `ECLASS16_0_ASSET_EN_SG_90.xml` <br />
+│   │   │   ├── __unitsml_en/__ <br />
+│   │   │   │   └── `ECLASS16_0_UNITSML_EN.xml` <br />
+│   │   │   └── `ECLASS_ASSET_XML_Read_Me_EN_v1.pdf` <br />
+│   │   └── `README.md` <br />
 │   ├── `__init__.py` <br />
+│   ├── `eclass_build_mapping.py` # ECLASS build mapping <br />
 │   ├── `model.py`         # Core models for DPP layers <br />
 │   ├── `part_class.py`    # Universal part class set <br />
-│   ├── `utils.py`         # Any helper functions <br />
+│   ├── `schema_base.py`   # Base schema for DPP layers <br />
+│   ├── `schema_registry.py` # Schema registry <br />
+│   └── `utils.py`         # Any helper functions <br />
 ├── __tests/__ <br />
 │   ├── `test_model.py` <br />
 │   ├── `test_part_class.py` <br />
+│   ├── `test_schema_registry.py` <br />
+│   └── `test_schema_registry_second.py` <br />
 ├── `pyproject.toml`  <br />
 ├── `LICENSE.txt`  <br />
-├── `README.md` <br />
+└── `README.md` <br />
 
 ---
 
