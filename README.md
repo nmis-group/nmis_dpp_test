@@ -6,33 +6,33 @@ A modular Python package that enables manufacturing companies to create interope
 ## Package Layout
 
 ```text
-__nmis_dpp_test/__
-├── __nmis_dpp/__
-│   ├── __ontology_data/__ 
-│   │   ├── __eclass_16/__ 
-│   │   │   ├── __dictionary_assets_en/__ 
-│   │   │   │   ├── `ECLASS16_0_ASSET_EN_SG_13.xml`
+nmis_dpp_test/
+├── nmis_dpp/
+│   ├── ontology_data/
+│   │   ├── eclass_16/
+│   │   │   ├── dictionary_assets_en/
+│   │   │   │   ├── ECLASS16_0_ASSET_EN_SG_13.xml
 │   │   │   │   ├── ...     
-│   │   │   │   └── `ECLASS16_0_ASSET_EN_SG_90.xml`
-│   │   │   ├── __unitsml_en/__ 
-│   │   │   │   └── `ECLASS16_0_UNITSML_EN.xml` 
-│   │   │   └── `ECLASS_ASSET_XML_Read_Me_EN_v1.pdf` 
-│   │   └── `README.md` 
-│   ├── `__init__.py` 
-│   ├── `eclass_build_mapping.py` # ECLASS build mapping 
-│   ├── `model.py`         # Core models for DPP layers 
-│   ├── `part_class.py`    # Universal part class set 
-│   ├── `schema_base.py`   # Base schema for DPP layers 
-│   ├── `schema_registry.py` # Schema registry 
-│   └── `utils.py`         # Any helper functions 
-├── __tests/__ 
-│   ├── `test_model.py` 
-│   ├── `test_part_class.py` 
-│   ├── `test_schema_registry.py` 
-│   └── `test_schema_registry_second.py` 
-├── `pyproject.toml`  
-├── `LICENSE.txt` 
-└── `README.md` 
+│   │   │   │   └── ECLASS16_0_ASSET_EN_SG_90.xml
+│   │   │   ├── unitsml_en/
+│   │   │   │   └── ECLASS16_0_UNITSML_EN.xml 
+│   │   │   └── ECLASS_ASSET_XML_Read_Me_EN_v1.pdf 
+│   │   └── README.md 
+│   ├── __init__.py 
+│   ├── eclass_build_mapping.py # ECLASS build mapping 
+│   ├── model.py         # Core models for DPP layers 
+│   ├── part_class.py    # Universal part class set 
+│   ├── schema_base.py   # Base schema for DPP layers 
+│   ├── schema_registry.py # Schema registry 
+│   └── utils.py         # Any helper functions 
+├── tests/ 
+│   ├── test_model.py 
+│   ├── test_part_class.py
+│   ├── test_schema_registry.py 
+│   └── test_schema_registry_second.py 
+├── pyproject.toml  
+├── LICENSE.txt 
+└── README.md 
 ```
 ---
 
