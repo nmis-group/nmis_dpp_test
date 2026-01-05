@@ -27,7 +27,8 @@ from typing import Dict, List, Any
 from dataclasses import asdict
 from part_class import PartClass, OntologyBinding
 
-ECLASS_DIR = Path("./eclass_16")
+# eclass_build_mapping.py lives in nmis_dpp/, so go into ontology_data/eclass_16/dictionary_assets_en
+ECLASS_DIR = Path(__file__).resolve().parent / "ontology_data" / "eclass_16" / "dictionary_assets_en"
 OUTPUT_YAML = "eclass_part_class_mapping.yaml"
 
 # Domain class to ECLASS mapping (extend as needed)
