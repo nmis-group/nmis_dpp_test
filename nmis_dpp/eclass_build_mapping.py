@@ -30,7 +30,7 @@ from part_class import PartClass, OntologyBinding
 # eclass_build_mapping.py lives in nmis_dpp/, so go into ontology_data/eclass_16/dictionary_assets_en
 ECLASS_DIR = Path(__file__).resolve().parent / "ontology_data" / "eclass_16" / "dictionary_assets_en"
 OUTPUT_YAML = "eclass_part_class_mapping.yaml"
-
+"""
 # Domain class to ECLASS mapping (extend as needed)
 DOMAIN_TO_ECLASS = {
     "PowerConversion": ["0173-101-AGW606007"],  # Power supply units, converters
@@ -49,7 +49,7 @@ DOMAIN_TO_ECLASS = {
     "Consumable": ["0173-101-AGW624007"],        # Filters, lubricants
     "Fastener": ["0173-101-AAA634023"],          # Screws, bolts
 }
-
+"""
 # Namespace map for these ECLASS files
 NS = {
     "dic": "urn:eclass:xml-schema:dictionary:5.0",
