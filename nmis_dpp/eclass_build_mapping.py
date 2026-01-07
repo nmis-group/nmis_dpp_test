@@ -50,61 +50,74 @@ DOMAIN_TO_ECLASS = {
     "Fastener": ["0173-101-AAA634023"],          # Screws, bolts
 }
 
+# Namespace map for these ECLASS files
+NS = {
+    "dic": "urn:eclass:xml-schema:dictionary:5.0",
+    "ontoml": "urn:iso:std:iso:is:13584:-32:ed-1:tech:xml-schema:ontoml",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+}
 
-def parse_eclass_xml(xml_files: List[Path]) -> Dict[str, Any]:
-    """
-    Parse all ECLASS XML files and extract:
-    - All CATEGORIZATIONCLASSType → id, preferredname, definition
-    - All ITEMCLASSCASEOFType → id, iscaseof classrefs
-    """
-    classes_by_id = {}
-    case_of_mapping = {}  # class_id → list of item class ids
+def parse_eclass_xml(xml_files: List[Path]) -> Tuple[Dict[str, Any], Dict[str, List[str]]]:
+    classes_by_id: Dict[str, Any] = {}
+    case_of_mapping: Dict[str, List[str]] = {}
 
     for xml_file in xml_files:
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
-        # Parse CATEGORIZATIONCLASSType (application classes)
-        for class_elem in root.findall(".//{http://www.eclass.eu/ontology}CATEGORIZATIONCLASSType"):
+        # 1) All ontoml:class elements
+        for class_elem in root.findall(".//ontoml:class", NS):
             class_id = class_elem.get("id")
             if not class_id:
                 continue
 
-            preferred_name_elem = class_elem.find(".//{http://www.eclass.eu/ontology}preferredname")
-            name = preferred_name_elem.get("label", f"ECLASS Class {class_id}") if preferred_name_elem is not None else class_id
+            xsi_type = class_elem.get(f"{{{NS['xsi']}}}type", "")
+            # Example values: "ontoml:CATEGORIZATION_CLASS_Type", "ontoml:ITEM_CLASS_CASE_OF_Type"
 
-            classes_by_id[class_id] = {
-                "id": class_id,
-                "name": name,
-                "type": "CATEGORIZATION",
-            }
+            # 1a) CATEGORIZATION classes
+            if xsi_type.endswith("CATEGORIZATION_CLASS_Type"):
+                # preferred_name/label is unqualified in your snippet, so no prefix:
+                pref = class_elem.find("./preferred_name/label")
+                name = (
+                    pref.text.strip()
+                    if pref is not None and pref.text
+                    else f"ECLASS Class {class_id}"
+                )
 
-        # Parse ITEMCLASSCASEOFType (concrete item classes)
-        for item_elem in root.findall(".//{http://www.eclass.eu/ontology}ITEMCLASSCASEOFType"):
-            item_id = item_elem.get("id")
-            if not item_id:
-                continue
-
-            # Extract iscaseof relationships
-            case_of_refs = []
-            for iscaseof_elem in item_elem.findall(".//{http://www.eclass.eu/ontology}iscaseof"):
-                class_ref = iscaseof_elem.find(".//{http://www.eclass.eu/ontology}classref")
-                if class_ref is not None:
-                    case_of_refs.append(class_ref.get("ref"))
-
-            if case_of_refs:
-                classes_by_id[item_id] = {
-                    "id": item_id,
-                    "name": f"Item Class {item_id}",
-                    "type": "ITEM",
-                    "case_of": case_of_refs,
+                classes_by_id[class_id] = {
+                    "id": class_id,
+                    "name": name,
+                    "type": "CATEGORIZATION",
                 }
 
-                # Build reverse mapping: class → list of item classes
-                for class_ref in case_of_refs:
-                    if class_ref not in case_of_mapping:
-                        case_of_mapping[class_ref] = []
-                    case_of_mapping[class_ref].append(item_id)
+            # 1b) ITEM CLASS CASE-OF
+            elif xsi_type.endswith("ITEM_CLASS_CASE_OF_Type"):
+                # The snippet you showed only had categorization classes,
+                # but in other files the item-class case-of elements will look similar.
+                pref = class_elem.find("./preferred_name/label")
+                name = (
+                    pref.text.strip()
+                    if pref is not None and pref.text
+                    else f"Item Class {class_id}"
+                )
+
+                # is_case_of relation is expressed via an element like:
+                # <is_case_of class_ref="0173-1#01-..." />
+                case_refs: List[str] = []
+                for ic in class_elem.findall("./is_case_of"):
+                    ref = ic.get("class_ref")
+                    if ref:
+                        case_refs.append(ref)
+
+                classes_by_id[class_id] = {
+                    "id": class_id,
+                    "name": name,
+                    "type": "ITEM",
+                    "case_of": case_refs,
+                }
+
+                for ref in case_refs:
+                    case_of_mapping.setdefault(ref, []).append(class_id)
 
     return classes_by_id, case_of_mapping
 
