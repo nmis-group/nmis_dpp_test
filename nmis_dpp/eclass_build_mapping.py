@@ -1,55 +1,29 @@
 """
 eclass_build_mapping.py
 
-Parses ECLASS XML files from ./eclass_16/ and generates a YAML mapping that connects
-your domain PartClass types to ECLASS classes and their allowable item types.
-
-Output format:
-
-part_class_mapping:
-PowerConversion:
-eclass_class_ids: ["0173-101-AGW606007", ...] # ECLASS categorization classes
-eclass_case_item_ids: ["0173-1---ASSET1101-XYZ", ...] # ITEMCLASSCASEOFType ids
-properties: {...} # ECLASS properties → PartClass field mappings
-Sensor:
-eclass_class_ids: [...]
-...
+Parses ECLASS XML files from ./ontology_data/eclass_16/dictionary_assets_en and generates
+a YAML mapping that connects your domain PartClass types to ECLASS classes and their
+allowable item types, using definition-based keyword matching only.
 
 Author: Anmol Kumar, NMIS
 """
 
-import os
 import glob
 import yaml
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Any
-from dataclasses import asdict
-from part_class import PartClass, OntologyBinding
+from typing import Dict, List, Any, Tuple
+from part_class import PartClass
 
 # eclass_build_mapping.py lives in nmis_dpp/, so go into ontology_data/eclass_16/dictionary_assets_en
-ECLASS_DIR = Path(__file__).resolve().parent / "ontology_data" / "eclass_16" / "dictionary_assets_en"
+ECLASS_DIR = (
+    Path(__file__).resolve().parent
+    / "ontology_data"
+    / "eclass_16"
+    / "dictionary_assets_en"
+)
 OUTPUT_YAML = "eclass_part_class_mapping.yaml"
-"""
-# Domain class to ECLASS mapping (extend as needed)
-DOMAIN_TO_ECLASS = {
-    "PowerConversion": ["0173-101-AGW606007"],  # Power supply units, converters
-    "EnergyStorage": ["0173-101-AGW608007"],     # Batteries, capacitors
-    "Actuator": ["0173-101-ABX123"],             # Motors, valves, servos
-    "Sensor": ["0173-101-ABC456"],               # Sensors (temperature, pressure, etc.)
-    "ControlUnit": ["0173-101-AGW610007"],       # ECUs, controllers
-    "UserInterface": ["0173-101-AGW612007"],     # HMIs, displays
-    "Thermal": ["0173-101-AGW614007"],           # Heaters, coolers, fans
-    "Fluidics": ["0173-101-AGW616007"],          # Pumps, valves, tanks
-    "Structural": ["0173-101-AAA001001"],        # Frames, housings
-    "Transmission": ["0173-101-ABZ789"],         # Gears, bearings
-    "Protection": ["0173-101-AGW618007"],        # Fuses, breakers
-    "Connectivity": ["0173-101-AGW620007"],      # Connectors, cables
-    "SoftwareModule": ["0173-101-AGW622007"],    # Firmware, software
-    "Consumable": ["0173-101-AGW624007"],        # Filters, lubricants
-    "Fastener": ["0173-101-AAA634023"],          # Screws, bolts
-}
-"""
+
 # Namespace map for these ECLASS files
 NS = {
     "dic": "urn:eclass:xml-schema:dictionary:5.0",
@@ -57,7 +31,44 @@ NS = {
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
 }
 
-def parse_eclass_xml(xml_files: List[Path]) -> Tuple[Dict[str, Any], Dict[str, List[str]]]:
+# Domain-level keyword heuristics (applied to definition text)
+DOMAIN_KEYWORDS: Dict[str, List[str]] = {
+    "PowerConversion": ["power supply", "converter", "inverter", "voltage", "current"],
+    "EnergyStorage": ["battery", "accumulator", "storage", "cell", "energy storage"],
+    "Actuator": ["actuator", "drive", "servo", "motion", "positioning"],
+    "Sensor": ["sensor", "measurement", "measuring", "detector", "transducer"],
+    "ControlUnit": ["controller", "control unit", "logic", "regulator", "control system"],
+    "UserInterface": ["user interface", "display", "panel", "operator", "hmi"],
+    "Thermal": ["heating", "cooling", "thermal", "temperature control", "heat"],
+    "Fluidics": ["fluid", "hydraulic", "pneumatic", "valve", "pump"],
+    "Structural": ["structural", "frame", "housing", "support", "chassis"],
+    "Transmission": ["gear", "transmission", "drive train", "shaft", "coupling"],
+    "Protection": ["protection", "protective", "safety", "fuse", "breaker"],
+    "Connectivity": ["connector", "connection", "interface", "plug", "socket", "cable"],
+    "SoftwareModule": ["software", "module", "firmware", "program", "logic"],
+    "Consumable": ["consumable", "supply", "material", "lubricant", "filter"],
+    "Fastener": ["screw", "bolt", "fastener", "nut", "washer"],
+}
+
+
+def extract_definition_text(class_elem: ET.Element) -> str:
+    """Extract a single text string from <definition><text>…</text></definition>."""
+    parts: List[str] = []
+    for def_elem in class_elem.findall("./definition"):
+        for text_elem in def_elem.findall("./text"):
+            if text_elem.text:
+                parts.append(text_elem.text.strip())
+    return " ".join(parts)
+
+
+def parse_eclass_xml(
+    xml_files: List[Path],
+) -> Tuple[Dict[str, Any], Dict[str, List[str]]]:
+    """
+    Parse all ECLASS XML files into:
+      - classes_by_id: {id: {id, name, type, definition, case_of?}}
+      - case_of_mapping: {base_class_id: [item_class_ids]}
+    """
     classes_by_id: Dict[str, Any] = {}
     case_of_mapping: Dict[str, List[str]] = {}
 
@@ -65,44 +76,31 @@ def parse_eclass_xml(xml_files: List[Path]) -> Tuple[Dict[str, Any], Dict[str, L
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
-        # 1) All ontoml:class elements
         for class_elem in root.findall(".//ontoml:class", NS):
             class_id = class_elem.get("id")
             if not class_id:
                 continue
 
             xsi_type = class_elem.get(f"{{{NS['xsi']}}}type", "")
-            # Example values: "ontoml:CATEGORIZATION_CLASS_Type", "ontoml:ITEM_CLASS_CASE_OF_Type"
 
-            # 1a) CATEGORIZATION classes
+            pref = class_elem.find("./preferred_name/label")
+            name = (
+                pref.text.strip()
+                if pref is not None and pref.text
+                else f"ECLASS Class {class_id}"
+            )
+
+            definition_text = extract_definition_text(class_elem)
+
             if xsi_type.endswith("CATEGORIZATION_CLASS_Type"):
-                # preferred_name/label is unqualified in your snippet, so no prefix:
-                pref = class_elem.find("./preferred_name/label")
-                name = (
-                    pref.text.strip()
-                    if pref is not None and pref.text
-                    else f"ECLASS Class {class_id}"
-                )
-
                 classes_by_id[class_id] = {
                     "id": class_id,
                     "name": name,
                     "type": "CATEGORIZATION",
+                    "definition": definition_text,
                 }
 
-            # 1b) ITEM CLASS CASE-OF
             elif xsi_type.endswith("ITEM_CLASS_CASE_OF_Type"):
-                # The snippet you showed only had categorization classes,
-                # but in other files the item-class case-of elements will look similar.
-                pref = class_elem.find("./preferred_name/label")
-                name = (
-                    pref.text.strip()
-                    if pref is not None and pref.text
-                    else f"Item Class {class_id}"
-                )
-
-                # is_case_of relation is expressed via an element like:
-                # <is_case_of class_ref="0173-1#01-..." />
                 case_refs: List[str] = []
                 for ic in class_elem.findall("./is_case_of"):
                     ref = ic.get("class_ref")
@@ -113,6 +111,7 @@ def parse_eclass_xml(xml_files: List[Path]) -> Tuple[Dict[str, Any], Dict[str, L
                     "id": class_id,
                     "name": name,
                     "type": "ITEM",
+                    "definition": definition_text,
                     "case_of": case_refs,
                 }
 
@@ -122,31 +121,47 @@ def parse_eclass_xml(xml_files: List[Path]) -> Tuple[Dict[str, Any], Dict[str, L
     return classes_by_id, case_of_mapping
 
 
-def build_domain_mapping(classes_by_id: Dict[str, Any], case_of_mapping: Dict[str, List[str]]) -> Dict[str, Any]:
-    """
-    Map your domain PartClass types to ECLASS classes and their allowable items.
-    """
-    part_class_mapping = {}
+def matches_domain(definition: str, domain: str) -> bool:
+    """Return True if the definition text seems to belong to the given domain."""
+    text = (definition or "").lower()
+    for kw in DOMAIN_KEYWORDS.get(domain, []):
+        if kw in text:
+            return True
+    return False
 
-    for domain_class, eclass_class_ids in DOMAIN_TO_ECLASS.items():
+
+def build_domain_mapping(
+    classes_by_id: Dict[str, Any], case_of_mapping: Dict[str, List[str]]
+) -> Dict[str, Any]:
+    """
+    Map domain PartClass types to ECLASS classes and their allowable items,
+    using definition-based keyword matching only (no external IDs).
+    """
+    part_class_mapping: Dict[str, Any] = {}
+
+    for domain_class in DOMAIN_KEYWORDS.keys():
         mapping = {
             "domain_class": domain_class,
-            "eclass_class_ids": [],
+            "eclass_class_ids": [],       # kept for schema compatibility, but unused
             "eclass_case_item_ids": [],
             "eclass_classes": {},
         }
 
-        # Find all case items for these ECLASS classes
+        # 1) categorization classes selected purely by definition keywords
+        for class_id, cls in classes_by_id.items():
+            if cls.get("type") != "CATEGORIZATION":
+                continue
+            if matches_domain(cls.get("definition", ""), domain_class):
+                mapping["eclass_classes"][class_id] = cls
+
+        # 2) include item classes whose base class is in the selected set
+        selected_base_ids = set(mapping["eclass_classes"].keys())
         all_case_items = set()
-        for class_id in eclass_class_ids:
-            if class_id in case_of_mapping:
-                all_case_items.update(case_of_mapping[class_id])
-            if class_id in classes_by_id:
-                mapping["eclass_classes"][class_id] = classes_by_id[class_id]
+        for base_id in selected_base_ids:
+            for item_id in case_of_mapping.get(base_id, []):
+                all_case_items.add(item_id)
 
-        mapping["eclass_class_ids"] = eclass_class_ids
-        mapping["eclass_case_item_ids"] = list(all_case_items)
-
+        mapping["eclass_case_item_ids"] = sorted(all_case_items)
         part_class_mapping[domain_class] = mapping
 
     return part_class_mapping
@@ -155,11 +170,11 @@ def build_domain_mapping(classes_by_id: Dict[str, Any], case_of_mapping: Dict[st
 def generate_part_class_bindings(mapping: Dict[str, Any]) -> List[PartClass]:
     """
     Generate example PartClass instances with ECLASS bindings populated.
+    class_ids is left empty because selection is semantic, not ID-driven.
     """
-    examples = []
+    examples: List[PartClass] = []
 
     for domain_class_name, eclass_mapping in mapping.items():
-        # Create a sample instance of the domain class
         part = PartClass(
             part_id=f"{domain_class_name.lower()}-example-001",
             name=f"Example {domain_class_name}",
@@ -167,10 +182,9 @@ def generate_part_class_bindings(mapping: Dict[str, Any]) -> List[PartClass]:
             properties={"example": True},
         )
 
-        # Bind ECLASS ontology
         part.bind_ontology(
             ontology_name="ECLASS",
-            class_ids=eclass_mapping["eclass_class_ids"],
+            class_ids=[],  # no explicit IDs; see metadata["classes"]
             case_item_ids=eclass_mapping["eclass_case_item_ids"],
             metadata={
                 "version": "16.0",
@@ -184,36 +198,42 @@ def generate_part_class_bindings(mapping: Dict[str, Any]) -> List[PartClass]:
     return examples
 
 
-def main():
+def main() -> None:
     """Main entrypoint: parse ECLASS → generate mapping → save YAML."""
     print("🔍 Scanning ECLASS XML files...")
-    xml_files = list(glob.glob(str(ECLASS_DIR / "*.xml")))
+    xml_files = list((ECLASS_DIR).glob("*.xml"))
     if not xml_files:
         print(f"❌ No XML files found in {ECLASS_DIR}")
         return
 
     print(f"📖 Parsing {len(xml_files)} ECLASS files...")
-    classes_by_id, case_of_mapping = parse_eclass_xml([Path(f) for f in xml_files])
+    classes_by_id, case_of_mapping = parse_eclass_xml(xml_files)
 
-    print("🏗️  Building domain mappings...")
+    print("🏗️  Building domain mappings (definition-based)...")
     part_class_mapping = build_domain_mapping(classes_by_id, case_of_mapping)
 
     print("💾 Saving mapping to YAML...")
     with open(OUTPUT_YAML, "w") as f:
-        yaml.dump({
-            "eclass_version": "16.0",
-            "total_classes": len(classes_by_id),
-            "domain_mappings": part_class_mapping,
-        }, f, default_flow_style=False, sort_keys=False)
+        yaml.dump(
+            {
+                "eclass_version": "16.0",
+                "total_classes": len(classes_by_id),
+                "domain_mappings": part_class_mapping,
+            },
+            f,
+            default_flow_style=False,
+            sort_keys=False,
+            allow_unicode=True,
+        )
 
     print(f"✅ Mapping saved: {OUTPUT_YAML}")
 
-    # Generate example bindings
     examples = generate_part_class_bindings(part_class_mapping)
     print("\n📋 Example usage:")
-    for part in examples[:3]:  # Show first 3
-        print(f"  {part.type}: {len(part.allowed_item_types('ECLASS'))} ECLASS item types")
-        print(f"    class_ids: {part.get_binding('ECLASS').class_ids[:2]}...")
+    for part in examples[:3]:
+        binding = part.get_binding("ECLASS")
+        print(f"  {part.type}: {len(binding.case_item_ids)} ECLASS item types")
+        print(f"    example item_ids: {binding.case_item_ids[:3]}...")
 
 
 if __name__ == "__main__":
