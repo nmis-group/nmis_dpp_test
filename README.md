@@ -4,19 +4,36 @@ A modular Python package that enables manufacturing companies to create interope
 
 ---
 ## Package Layout
-__nmis_dpp_test/__ <br />
-├── __nmis_dpp/__ <br />
-│   ├── `__init__.py` <br />
-│   ├── `model.py`         # Core models for DPP layers <br />
-│   ├── `part_class.py`    # Universal part class set <br />
-│   ├── `utils.py`         # Any helper functions <br />
-├── __tests/__ <br />
-│   ├── `test_model.py` <br />
-│   ├── `test_part_class.py` <br />
-├── `pyproject.toml`  <br />
-├── `LICENSE.txt`  <br />
-├── `README.md` <br />
 
+```text
+nmis_dpp_test/
+├── nmis_dpp/
+│   ├── ontology_data/
+│   │   ├── eclass_16/
+│   │   │   ├── dictionary_assets_en/
+│   │   │   │   ├── ECLASS16_0_ASSET_EN_SG_13.xml
+│   │   │   │   ├── ...     
+│   │   │   │   └── ECLASS16_0_ASSET_EN_SG_90.xml
+│   │   │   ├── unitsml_en/
+│   │   │   │   └── ECLASS16_0_UNITSML_EN.xml 
+│   │   │   └── ECLASS_ASSET_XML_Read_Me_EN_v1.pdf 
+│   │   └── README.md 
+│   ├── __init__.py 
+│   ├── eclass_build_mapping.py # ECLASS build mapping 
+│   ├── model.py         # Core models for DPP layers 
+│   ├── part_class.py    # Universal part class set 
+│   ├── schema_base.py   # Base schema for DPP layers 
+│   ├── schema_registry.py # Schema registry 
+│   └── utils.py         # Any helper functions 
+├── tests/ 
+│   ├── test_model.py 
+│   ├── test_part_class.py
+│   ├── test_schema_registry.py 
+│   └── test_schema_registry_second.py 
+├── pyproject.toml  
+├── LICENSE.txt 
+└── README.md 
+```
 ---
 
 ## Requirements
@@ -27,11 +44,11 @@ __nmis_dpp_test/__ <br />
 
 ## Installation
 ### From PyPI
-```
+```shell
 pip install nmis_dpp_test
 ```
 ### From Source
-```
+```shell
 git clone https://github.com/nmis-group/nmis_dpp_test.git
 cd nmis_dpp_test  
 pip install .
@@ -45,14 +62,14 @@ pip install .
 We have created a simple python file to showcase the usage.
 After installation run the file:
 
-```
+```shell
 cd nmis_dpp_test
 python3 usage.py
 ```
 
 __usage.py__ ¬
 
-```
+```python
 # Example usage for the nmis_dpp Digital Product Passport package
 
 from nmis_dpp.model import (
