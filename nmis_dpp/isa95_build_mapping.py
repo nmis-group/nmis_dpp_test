@@ -44,7 +44,7 @@ ISA95_SCHEMA_DIR = (
 
 OUTPUT_YAML = "isa95_part_class_mapping.yaml"
 
-MIN_SCORE = 2  # minimal keyword hits to accept a domain
+MIN_SCORE = 1  # minimal keyword hits to accept a domain
 
 
 # ---------------------------------------------------------------------------
@@ -65,6 +65,8 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "uninterruptible power supply",
         "ups",
         "voltage regulator",
+        "energy",
+        "power",
     ],
     "EnergyStorage": [
         "battery",
@@ -74,6 +76,9 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "storage tank",
         "reservoir",
         "silo",
+        "storage",
+        "storage zone",
+        "storage unit",
     ],
     "Actuator": [
         "actuator",
@@ -84,6 +89,7 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "valve actuator",
         "controlled element",
         "mechanical output",
+        "execution",
     ],
     "Sensor": [
         "sensor",
@@ -93,6 +99,11 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "measurement",
         "measurement device",
         "instrument",
+        "test",
+        "sample",
+        "quality",
+        "result",
+        "value",
     ],
     "ControlUnit": [
         "controller",
@@ -103,6 +114,11 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "plc",
         "programmable controller",
         "automation controller",
+        "control",
+        "module",
+        "logic",
+        "capability",
+        "process code",
     ],
     "UserInterface": [
         "user interface",
@@ -113,6 +129,9 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "annunciator",
         "alarm panel",
         "operator station",
+        "person",
+        "personnel",
+        "individual",
     ],
     "Thermal": [
         "heating",
@@ -124,6 +143,7 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "kiln",
         "heater",
         "cooler",
+        "temperature",
     ],
     "Fluidics": [
         "pump",
@@ -135,6 +155,9 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "fluid",
         "hydraulic",
         "pneumatic",
+        "liquid",
+        "gas",
+        "flow",
     ],
     "Structural": [
         "structure",
@@ -145,6 +168,9 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "enclosure",
         "chassis",
         "platform",
+        "physical asset",
+        "asset",
+        "class",
     ],
     "Transmission": [
         "gear",
@@ -156,6 +182,7 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "shaft",
         "coupling",
         "bearing",
+        "assembly",
     ],
     "Protection": [
         "protection",
@@ -167,6 +194,10 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "safety device",
         "interlock",
         "safety interlock",
+        "safety",
+        "alarm",
+        "alert",
+        "security",
     ],
     "Connectivity": [
         "connector",
@@ -178,6 +209,9 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "network connection",
         "bus",
         "fieldbus",
+        "network",
+        "resource network",
+        "interface",
     ],
     "SoftwareModule": [
         "software",
@@ -187,6 +221,11 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "execution logic",
         "algorithm",
         "recipe logic",
+        "job",
+        "order",
+        "command",
+        "transaction",
+        "dispatch",
     ],
     "Consumable": [
         "consumable",
@@ -196,6 +235,12 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "raw material",
         "lubricant",
         "cleaning",
+        "consumed",
+        "produced",
+        "lot",
+        "sublot",
+        "inventory",
+        "bill of material",
     ],
     "Fastener": [
         "fastener",
@@ -205,7 +250,8 @@ DOMAIN_KEYWORDS: Dict[str, List[str]] = {
         "washer",
         "anchor",
         "clamp",
-    ],
+        "joint",
+    ]
 }
 
 
