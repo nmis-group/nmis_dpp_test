@@ -17,9 +17,32 @@ nmis_dpp_test/
 │   │   │   ├── unitsml_en/
 │   │   │   │   └── ECLASS16_0_UNITSML_EN.xml 
 │   │   │   └── ECLASS_ASSET_XML_Read_Me_EN_v1.pdf 
+│   │   ├── isa95/
+│   │   │   ├── Documentation/  
+│   │   │   │   ├── B2MML-BatchML-CodeGeneration.docx
+│   │   │   │   ├── B2MML-Documentation.pdf
+│   │   │   │   ├── B2MML-JSON-Documentation.pdf
+│   │   │   │   ├── BatchML-BatchInformation.docx                                                
+│   │   │   │   ├── BatchML-BatchProductionRecord.docx
+│   │   │   │   └── BatchML-GeneralRecipe.docx
+│   │   │   ├── Examples/  
+│   │   │   │   ├── BatchML v02 Cough Syrup Example Files.zip
+│   │   │   │   ├── BatchML v0401 Example with extensions.zip
+│   │   │   │   ├── Courbon B2MML v0401 Example XML Files.zip
+│   │   │   │   ├── Readme.txt
+│   │   │   │   └── ReportAboutUseOfB2MMLinARTISAN.pdf
+│   │   │   ├── Schema/  
+│   │   │   │   ├── AllSchemas.json
+│   │   │   │   ├── B2MML-AllExtensions.xsd
+│   │   │   │   ├── B2MML-Common.xsd                                               
+│   │   │   │   ├── B2MML-CommonExtensions.xsd
+│   │   │   │   ├── ...
+│   │   │   │   └── BatchML-GeneralRecipeExtensions.xsd
+│   │   │   └── README.md
 │   │   └── README.md 
 │   ├── __init__.py 
 │   ├── eclass_build_mapping.py # ECLASS build mapping 
+│   ├── isa95_build_mapping.py # ISA95 build mapping 
 │   ├── model.py         # Core models for DPP layers 
 │   ├── part_class.py    # Universal part class set 
 │   ├── schema_base.py   # Base schema for DPP layers 
