@@ -160,7 +160,7 @@ This persona is not a DPP expert, and also not an ontology expert. Their job is 
 │  └─────────┘   │     └──────────────────┘   │                      │
 │                │                             │    ┌─────────────┐   │
 │  ┌─────────┐   │                             └───►│ ISA-95 /    │   │
-│  │ CSV /   │───┘                                  │ other views │   │
+│  │ Data in │───┘                                  │ other views │   │
 │  │ JSON    │                                      └─────────────┘   │
 │  └─────────┘                                                        │
 │                                                                     │
