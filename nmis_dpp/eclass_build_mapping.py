@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Dict, List, Any, Tuple, Optional
 
-from part_class import PartClass  # or from nmis_dpp.part_class import PartClass
+from .part_class import PartClass
 
 # ---------------------------------------------------------------------------
 # Paths and constants

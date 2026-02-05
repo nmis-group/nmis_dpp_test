@@ -28,7 +28,7 @@ from typing import Dict, List, Any, Optional
 import xml.etree.ElementTree as ET
 import yaml
 
-from part_class import PartClass
+from .part_class import PartClass
 
 
 # ---------------------------------------------------------------------------
