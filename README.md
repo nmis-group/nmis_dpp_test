@@ -94,14 +94,18 @@ pip install .
 ## Usage Example
 
 We have created a simple python file to showcase the usage.
-After installation run the file:
-
 ```shell
 cd nmis_dpp_test
-python3 usage.py
+
+# 1. Generate a sample DPP JSON file (using helper script or usage_test logic)
+python generate_dpp_json.py
+
+# 2. Run the main usage script with input file and target schema
+python usage.py coffee_machine.json ECLASS
+# python usage.py coffee_machine.json ISA-95
 ```
 
-__usage.py__ ¬
+__usage.py__
 
 ```python
 # Example usage for the nmis_dpp Digital Product Passport package
