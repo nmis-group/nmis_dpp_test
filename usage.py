@@ -1,108 +1,185 @@
-# Example usage for the nmis_dpp Digital Product Passport package
+"""
+usage.py
 
+Usage:
+    python usage.py <input_dpp.json> <schema_name>
+
+Arguments:
+    input_dpp.json: Path to a JSON file containing a serialized DigitalProductPassport.
+    schema_name:    Target schema to map to ('ECLASS' or 'ISA-95').
+
+Example:
+    python usage.py my_dpp.json ECLASS
+"""
+
+import argparse
+import json
+import ast
+import sys
+from typing import Dict, Any, Type
+from pathlib import Path
+
+from nmis_dpp import get_global_registry, register_default_mappers
 from nmis_dpp.model import (
     IdentityLayer, StructureLayer, LifecycleLayer, RiskLayer,
     SustainabilityLayer, ProvenanceLayer, DigitalProductPassport
 )
 from nmis_dpp.part_class import (
-    Actuator, Sensor, PowerConversion
+    PartClass, OntologyBinding,
+    Actuator, Sensor, PowerConversion, Thermal, Fluidics,
+    Structural, ControlUnit, UserInterface, Fastener, Connectivity,
+    EnergyStorage, SoftwareModule, Consumable, Protection, Transmission
 )
-from nmis_dpp.utils import to_dict, to_json
+from nmis_dpp.utils import to_json
 
-# 1. Define parts using reusable part classes
-motor = Actuator(
-    part_id="A001",
-    name="Drive Motor",
-    type="Actuator",
-    torque=2.1,
-    speed=1750,
-    duty_cycle=0.7,
-    voltage=48,
-    actuation_type="electric"
-)
-temperature_sensor = Sensor(
-    part_id="S003",
-    name="Temp Sensor",
-    type="Sensor",
-    sensor_type="temperature",
-    range_min=-40,
-    range_max=120,
-    accuracy=0.25,
-    drift=0.01,
-    response_time=7
-)
-psu = PowerConversion(
-    part_id="P001",
-    name="PSU",
-    type="PowerConversion",
-    input_voltage=230,
-    output_voltage=48,
-    power_rating=350,
-    efficiency=0.92
-)
+# Registry is initialized on module import via nmis_dpp.__init__ but explicit call is safe
+register_default_mappers()
 
-# 2. Build each passport layer
-identity = IdentityLayer(
-    global_ids={"gtin": "987654321", "serial": "SN1245"},
-    make_model={"brand": "Acme", "model": "UnitX", "hw_rev": "A", "fw_rev": "2.0"},
-    ownership={"manufacturer": "Acme Ltd", "owner": "BuyerOrg", "operator": "MaintainerX", "location": "Berlin"},
-    conformity=["CE", "RoHS", "UKCA"]
-)
-structure = StructureLayer(
-    hierarchy={
-        "product": "UnitX",
-        "components": [motor, temperature_sensor, psu]
-    },
-    parts=[motor, temperature_sensor, psu],
-    interfaces=[
-        {"type": "electrical", "details": {"voltage": 48, "connector": "XT60"}},
-        {"type": "data", "details": {"protocol": "CAN"}}
-    ],
-    materials=[{"cas": "7439-89-6", "%mass": 70, "recyclable": "yes"}],
-    bom_refs=["XWZ-002"]
-)
-lifecycle = LifecycleLayer(
-    manufacture={"lot": "Batch77", "factory": "ACMEPlant", "date": "2025-03-18", "process": "injection", "co2e": 27.3},
-    use={"counters": {"hours": 143}, "telemetry": {}},
-    serviceability={"schedule": {"interval": "1Y"}, "repair_steps": ["Open housing", "Replace motor"], "repairability_score": 6},
-    events=[{"event_type": "install", "timestamp": "2025-04-01"}],
-    end_of_life={"disassembly": ["Unplug connectors"], "hazards": ["None"], "recovery_routes": ["Recycle", "Landfill"]}
-)
-risk = RiskLayer(
-    criticality={"levels": "Safety", "llp": False, "mtbf": 20000},
-    fmea=[{"failure_mode": "overheat", "effect": "shutdown", "mitigation": "cooling upgrade"}],
-    security={"sbom": "link", "vulnerabilities": [], "signing_keys": ["pubkey-xyz"], "update_policy": "signed-only"}
-)
-sustainability = SustainabilityLayer(
-    mass=5.0,
-    energy={"standby": 2.0, "active": 15.0, "water_use": 0.0},
-    recycled_content={"pcr_percent": 39, "bio": 2},
-    remanufacture={"eligible": True, "grading_criteria": {"condition": "A"}},
-)
-provenance = ProvenanceLayer(
-    signatures=[{"type": "manufacturer", "certificate": "certABC"}],
-    trace_links=["EPCIS:event1", "NFC:TAG773"]
-)
+# Map type strings to classes for deserialization
+PART_CLASS_MAP: Dict[str, Type[PartClass]] = {
+    "Actuator": Actuator,
+    "Sensor": Sensor,
+    "PowerConversion": PowerConversion,
+    "Thermal": Thermal,
+    "Fluidics": Fluidics,
+    "Structural": Structural,
+    "ControlUnit": ControlUnit,
+    "UserInterface": UserInterface,
+    "Fastener": Fastener,
+    "Connectivity": Connectivity,
+    "EnergyStorage": EnergyStorage,
+    "SoftwareModule": SoftwareModule,
+    "Consumable": Consumable,
+    "Protection": Protection,
+    "Transmission": Transmission,
+    "PartClass": PartClass
+}
 
-# 3. Create the product passport
-passport = DigitalProductPassport(
-    identity=identity,
-    structure=structure,
-    lifecycle=lifecycle,
-    risk=risk,
-    sustainability=sustainability,
-    provenance=provenance
-)
+def reconstruct_part(data: Dict[str, Any]) -> PartClass:
+    """
+    Reconstruct a specific PartClass subclass from a dictionary.
+    Handles nested OntologyBinding objects.
+    """
+    # 1. Extract core PartClass fields that might need special handling
+    p_type = data.get("type", "PartClass")
+    bindings_data = data.pop("ontology_bindings", {})
+    
+    # 2. Reconstruct OntologyBinding objects
+    bindings = {}
+    for key, b_data in bindings_data.items():
+        if isinstance(b_data, dict):
+            bindings[key] = OntologyBinding(**b_data)
+        else:
+            # Fallback if somehow already object (unlikely from JSON)
+            bindings[key] = b_data
+            
+    # 3. Resolve class
+    cls = PART_CLASS_MAP.get(p_type, PartClass)
+    
+    # 4. Instantiate (passing remaining data as kwargs)
+    # Check if 'properties' is in data, preserve it
+    # Note: dataclasses constructor expects fields. Extra fields in JSON might cause error if not careful.
+    # However, PartClass has 'properties' field for extras.
+    # But usually JSON matches fields. if strict dataclass, we must filter.
+    # For now assuming JSON strictly matches schema generated by to_dict.
+    
+    try:
+        part = cls(**data)
+    except TypeError as e:
+        # Fallback: if data contains extra keys, we might need to filter them
+        # or put them into 'properties'
+        valid_fields = cls.__dataclass_fields__.keys()
+        filtered_data = {k: v for k, v in data.items() if k in valid_fields}
+        part = cls(**filtered_data)
+        
+        # If there were extra fields, maybe log them or add to properties?
+        # part.properties.update({k: v for k, v in data.items() if k not in valid_fields})
 
-# 4. Serialize to dict and JSON for export or storage
-passport_dict = to_dict(passport)
-passport_json = to_json(passport, indent=2)
+    part.ontology_bindings = bindings
+    return part
 
-# Display or use the data
-print("--- Digital Product Passport Object ---")
-print(passport)
-print("\n--- As Dictionary ---")
-print(passport_dict)
-print("\n--- As JSON ---")
-print(passport_json)
+def reconstruct_dpp(data: Dict[str, Any]) -> DigitalProductPassport:
+    """
+    Reconstruct a DigitalProductPassport object from a dictionary.
+    """
+    # Reconstruct layers
+    identity = IdentityLayer(**data.get("identity", {}))
+    
+    # Structure needs part reconstruction
+    struct_data = data.get("structure", {})
+    parts_data = struct_data.get("parts", [])
+    parts = [reconstruct_part(p) for p in parts_data]
+    
+    # Update structure dict to have object list
+    struct_args = struct_data.copy()
+    struct_args["parts"] = parts
+    
+    # Handle optional fields or list of objects in other layers?
+    # Usually they are dicts or lists of dicts which match standard types (e.g. interfaces, materials are list[dict])
+    # So simple unpacking works for other layers.
+    
+    structure = StructureLayer(**struct_args)
+    lifecycle = LifecycleLayer(**data.get("lifecycle", {}))
+    risk = RiskLayer(**data.get("risk", {}))
+    sustainability = SustainabilityLayer(**data.get("sustainability", {}))
+    provenance = ProvenanceLayer(**data.get("provenance", {}))
+    
+    return DigitalProductPassport(
+        identity=identity,
+        structure=structure,
+        lifecycle=lifecycle,
+        risk=risk,
+        sustainability=sustainability,
+        provenance=provenance
+    )
 
+def main():
+    parser = argparse.ArgumentParser(description="Map a DPP JSON file to a specific schema.")
+    parser.add_argument("input_file", help="Path to the input DPP JSON file.")
+    parser.add_argument("schema", help="Target schema (ECLASS or ISA-95).")
+    
+    args = parser.parse_args()
+    
+    input_path = Path(args.input_file)
+    schema_target = args.schema
+    
+    if not input_path.exists():
+        print(f"Error: File {input_path} not found.")
+        sys.exit(1)
+        
+    print(f"Reading {input_path}...")
+    try:
+        with input_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+        sys.exit(1)
+        
+    print("Reconstructing DPP object...")
+    try:
+        dpp = reconstruct_dpp(data)
+    except Exception as e:
+        print(f"Error reconstructing DPP object: {e}")
+        # import traceback
+        # traceback.print_exc()
+        sys.exit(1)
+        
+    print(f"DPP Reconstructed. Parts: {len(dpp.structure.parts)}")
+    
+    registry = get_global_registry()
+    print(f"Mapping to {schema_target}...")
+    
+    try:
+        mapper = registry.get_mapper(schema_target)
+        output = mapper.map_dpp(dpp)
+        print("Mapping Successful.")
+        print(json.dumps(output, indent=2))
+    except KeyError:
+        print(f"Error: Schema '{schema_target}' not found. Available: {registry.list_schemas()}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Mapping Failed: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
