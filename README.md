@@ -8,6 +8,10 @@ A modular Python package that enables manufacturing companies to create interope
 ```text
 nmis_dpp_test/
 ├── nmis_dpp/
+│   ├── mappers/
+│   │   ├── __init__.py
+│   │   ├── eclass_mapper.py
+│   │   └── isa95_mapper.py
 │   ├── ontology_data/
 │   │   ├── eclass_16/
 │   │   │   ├── dictionary_assets_en/
@@ -49,13 +53,20 @@ nmis_dpp_test/
 │   ├── schema_registry.py # Schema registry 
 │   └── utils.py         # Any helper functions 
 ├── tests/ 
+│   ├── test_mappers.py
 │   ├── test_model.py 
 │   ├── test_part_class.py
+│   ├── test_registry_extended.py
 │   ├── test_schema_registry.py 
 │   └── test_schema_registry_second.py 
+├── .gitignore
+├── eclass_part_class_mapping.yaml
+├── isa95_part_class_mapping.yaml
+├── LICENSE.txt
+├── PRD_DPP.md 
 ├── pyproject.toml  
-├── LICENSE.txt 
-└── README.md 
+├── README.md
+└── usage.py
 ```
 ---
 

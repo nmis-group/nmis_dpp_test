@@ -1,13 +1,14 @@
 """
-usage.py
+usage_test.py
 
-Generates a realistic Digital Product Passport for a "Coffee Machine" with 50+ parts.
-Shows how to map this DPP to ECLASS and ISA-95 formats and prints the results.
+Generates a dummy Digital Product Passport for a "Coffee Machine" with 50+ parts.
+Verifies the mapping functionality of the nmis_dpp package (ECLASS, ISA-95).
 """
 
 import json
-import random
+import logging
 from typing import List
+import random
 
 from nmis_dpp import get_global_registry, register_default_mappers
 from nmis_dpp.model import (
@@ -18,7 +19,7 @@ from nmis_dpp.part_class import (
     PartClass, Actuator, Sensor, PowerConversion, Thermal, Fluidics,
     Structural, ControlUnit, UserInterface, Fastener, Connectivity
 )
-from nmis_dpp.utils import to_dict, to_json
+from nmis_dpp.utils import to_dict
 
 # Ensure default mappers are registered
 register_default_mappers()
@@ -140,6 +141,8 @@ def generate_coffee_machine_parts() -> List[PartClass]:
 
 def create_coffee_machine_dpp(parts: List[PartClass]) -> DigitalProductPassport:
     """Creates the full DPP object."""
+    part_ids = [p.part_id for p in parts]
+    
     return DigitalProductPassport(
         identity=IdentityLayer(
             global_ids={"gtin": "00-CAFE-9000", "serial": "CM2025-001"},
@@ -150,6 +153,7 @@ def create_coffee_machine_dpp(parts: List[PartClass]) -> DigitalProductPassport:
         structure=StructureLayer(
             hierarchy={"product": "EspressoMaster 9000"},
             parts=parts,
+            # components=part_ids, # Removed invalid arg
             interfaces=[],
             materials=[],
             bom_refs=[]
@@ -169,36 +173,39 @@ def create_coffee_machine_dpp(parts: List[PartClass]) -> DigitalProductPassport:
 def main():
     print("Generating Coffee Machine Data...")
     parts = generate_coffee_machine_parts()
-    dpp = create_coffee_machine_dpp(parts)
     print(f"Generated {len(parts)} parts.")
-
-    # Print the full DPP as requested
-    print("\n--- Digital Product Passport Object (JSON) ---")
-    print(to_json(dpp, indent=2))
+    
+    dpp = create_coffee_machine_dpp(parts)
+    print("DPP Created.")
 
     registry = get_global_registry()
     
     # 1. Map to ECLASS
-    print("\n\n--- Mapping to ECLASS ---")
+    print("\nMapping to ECLASS...")
     try:
         eclass_mapper = registry.get_mapper("ECLASS")
         eclass_output = eclass_mapper.map_dpp(dpp)
         print("ECLASS Mapping Successful.")
+        # Optional: Print snippet
+        print(f"ECLASS Schema: {eclass_output.get('schema')}")
         print(f"Mapped Components: {len(eclass_output.get('structure', {}).get('components', []))}")
         
     except Exception as e:
         print(f"ECLASS Mapping Failed: {e}")
 
     # 2. Map to ISA-95
-    print("\n\n--- Mapping to ISA-95 ---")
+    print("\nMapping to ISA-95...")
     try:
         isa95_mapper = registry.get_mapper("ISA-95")
         isa95_output = isa95_mapper.map_dpp(dpp)
         print("ISA-95 Mapping Successful.")
+        print(f"ISA-95 Schema: {isa95_output.get('schema')}")
         print(f"Nested Equipment: {len(isa95_output.get('structure', {}).get('NestedEquipment', []))}")
 
     except Exception as e:
         print(f"ISA-95 Mapping Failed: {e}")
+
+    print("\nUsage Test Complete.")
 
 if __name__ == "__main__":
     main()
