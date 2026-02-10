@@ -1,11 +1,8 @@
-# Source - https://stackoverflow.com/a/24956208
-# Posted by Enrico Marchesin, modified by community. See post 'Timeline' for change history
-# Retrieved 2026-02-04, License - CC BY-SA 3.0
-
+# Python Cache
 *.pyc 
-
-# Source - https://stackoverflow.com/a/24956208
-# Posted by Enrico Marchesin, modified by community. See post 'Timeline' for change history
-# Retrieved 2026-02-04, License - CC BY-SA 3.0
-
 find . -name "*.pyc" -exec git rm -f "{}" \;
+
+# Zone Identifier 
+*:Zone.Identifier
+find . -name "*:Zone.Identifier" -exec git rm -f "{}" \;
+
